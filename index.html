@@ -1,9 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="SLIP KK" links="https://github.com/geekks">
+    <link rel="icon" type="image/x-icon" href="./assets/slip-jaune-120x120.jpg">
+    <!-- Open Graph meta tags for link preview-->
+    <meta property="og:title" content="Slip kk" />
+    <meta property="og:description" content="Vous ne détestez pas le lundi, vous détestez la domination au travail." />
+    <meta property="og:url" content="https://slip-kk.fr" />
+    <meta property="og:image" content="https://slip-kk.fr/assets/slip-jaune-120x120.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Slip kk" />
+    <meta property="og:locale" content="fr_FR" />
+
+    <!-- Indexing-->
+    <meta name="robots" content="index, nofollow">
+
+    <!-- Metadata Google -->
+    <meta name="description" content="Vous ne détestez pas le lundi, vous détestez la domination au travail.">
     <title>SLIP KK</title>
     <style>
         body {
@@ -21,6 +37,27 @@
             border: 1px solid black;
             background-color: antiquewhite;
         }
+
+        #swal2-title {
+            margin-bottom: 30px;
+        }
+
+        #quote {
+            margin-bottom: 10px;
+        }
+
+        #opus {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 2px;
+        }
+
+        #author {
+            text-align: right;
+            font-style: italic;
+            margin-top: 2px;
+        }
     </style>
 </head>
 
@@ -28,6 +65,13 @@
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        const quotes = [
+            { author: "Emile", opus: "La cité de la peur", quote: "On peut tromper une fois mille personnes, mais on ne peut pas tromper mille fois mille personnes.", year: "1994" },
+            { author: "Le Débrayeur", opus: "Du Rififi infralinguistique à la Glacière", quote: "Elle résout des problèmes complexes du XXIème siècle comme d'autres vont aux chiottes.", year: "2024" },
+            { author: "François Rabelais", opus: "Gargantua", quote: "Ces braquemards enraidis qui habitent par les braguettes claustrales.", year: "1534" },
+            { author: "Patrick Marcolini", opus: "Le mouvement situationiste, une histoire intellectuelle", quote: "De sorte que la phase ciselante mise en lumière par Isou est en fait, en termes marxistes, le symptôme d'une époque de décomposition des idées et des modes d'existence dominants", year: "2013" }
+        ];
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
@@ -70,31 +114,61 @@
             }
         }
 
-        function changeDirection(event) {
+        function changeDirection(direction) {
             if (changingDirection) return;
             changingDirection = true;
-            const keyPressed = event.keyCode;
             const goingUp = dy === -20;
             const goingDown = dy === 20;
             const goingRight = dx === 20;
             const goingLeft = dx === -20;
 
-            if (keyPressed === 37 && !goingRight) {
+            if (direction === "left" && !goingRight) {
                 dx = -20;
                 dy = 0;
             }
-            if (keyPressed === 38 && !goingDown) {
+            if (direction === "up" && !goingDown) {
                 dx = 0;
                 dy = -20;
             }
-            if (keyPressed === 39 && !goingLeft) {
+            if (direction === "right" && !goingLeft) {
                 dx = 20;
                 dy = 0;
             }
-            if (keyPressed === 40 && !goingUp) {
+            if (direction === "down" && !goingUp) {
                 dx = 0;
                 dy = 20;
             }
+        }
+
+        function handleTouchStart(event) {
+            const touch = event.touches[0];
+            this.touchStartX = touch.clientX;
+            this.touchStartY = touch.clientY;
+        }
+
+        function handleTouchMove(event) {
+            if (!this.touchStartX || !this.touchStartY) return;
+
+            const touch = event.touches[0];
+            const dx = touch.clientX - this.touchStartX;
+            const dy = touch.clientY - this.touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0) {
+                    changeDirection("right");
+                } else {
+                    changeDirection("left");
+                }
+            } else {
+                if (dy > 0) {
+                    changeDirection("down");
+                } else {
+                    changeDirection("up");
+                }
+            }
+
+            this.touchStartX = null;
+            this.touchStartY = null;
         }
 
         function checkCollision() {
@@ -114,12 +188,21 @@
         function gameLoop() {
             if (checkCollision()) {
                 clearInterval(gameInterval);
+                const quote = quotes[snake.length % quotes.length];
                 Swal.fire({
-                    title: "Game Over",
-                    text: "Play Again?",
-                    icon: "warning",
+                    title: "Vous ne détestez pas le lundi, vous détestez la domination au travail.",
+                    html: `
+                           <p id="quote">"${quote.quote}"</p>
+                           <p id="opus">${quote.opus}</p>
+                           <p id="author">${quote.author}, ${quote.year}</p>
+                        `,
+                    icon: "question",
+                    iconColor: "yellow",
+                    background: "black",
                     showCancelButton: true,
-                    confirmButtonText: "Yes, play again!",
+                    confirmButtonText: "Situez-moi encore",
+                    cancelButtonText: "Auto-dissolution de l'expérience situationniste",
+                    footer: `Vous avez fait un score de ${snake.length - 1}, ce qui est bien mais pas top.`,
                 }).then((result) => {
                     if (result.isConfirmed) {
                         resetGame();
@@ -144,9 +227,16 @@
             gameInterval = setInterval(gameLoop, 100);
         }
 
-        document.addEventListener("keydown", changeDirection);
+        canvas.addEventListener("touchstart", handleTouchStart, false);
+        canvas.addEventListener("touchmove", handleTouchMove, false);
+        document.addEventListener("keydown", (event) => {
+            const directions = {
+                37: "left",
+                38: "up",
+                39: "right",
+                40: "down"
+            };
+            changeDirection(directions[event.keyCode]);
+        });
         resetGame();
     </script>
-</body>
-
-</html>
