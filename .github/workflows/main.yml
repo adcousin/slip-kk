@@ -15,10 +15,6 @@ jobs:
     steps:
     - name: Get latest code
       uses: actions/checkout@v4
-    
-    - name: 🔨 Force reset css cache
-      run: |
-        sed -i "s/?v=100/?v=$(date +%s)/g" index.html
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
