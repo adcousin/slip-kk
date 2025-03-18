@@ -38,16 +38,22 @@
             border: 1px solid black;
             background-color: antiquewhite;
         }
-        #instructions {
+
+        #instructions-snake,
+        #content {
             text-align: center;
             margin-bottom: 20px;
             font-weight: bold;
             background-color: #f1cd00;
             font-family: 'Courier New', Courier, monospace;
         }
-        #instructions p {
+
+        #instructions-snake p,
+        #content {
+            padding: 10px 10px;
             margin: 10px 10px;
         }
+
         #swal2-title {
             margin-bottom: 30px;
         }
@@ -68,19 +74,29 @@
             font-style: italic;
             margin-top: 2px;
         }
+
+        @media only screen and (max-width: 799px)
+        /*HANDHELD*/
+            {
+
+            #gameCanvas,
+            #instructions-snake {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div>
-        <img src="./assets/SLIP.gif" alt="SLIP KK" width="400" >
+        <img src="./assets/SLIP.gif" alt="SLIP KK" width="400">
     </div>
-    <div id="instructions">
+    <div id="instructions-snake">
         <p>Ceci est un jeu de Snake.</p>
         <p>Si j'étais vous j'utiliserais les flèches directionnelles AVANT de manger le mur.</p>
         <p>Récompense situationniste.</p>
     </div>
-    <div>
+    <div id="content">
         <canvas id="gameCanvas" width="400" height="400"></canvas>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -92,172 +108,203 @@
             { author: "Patrick Marcolini", opus: "Le mouvement situationiste, une histoire intellectuelle", quote: "De sorte que la phase ciselante mise en lumière par Isou est en fait, en termes marxistes, le symptôme d'une époque de décomposition des idées et des modes d'existence dominants", year: "2013" }
         ];
 
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+        const isMobile = window.matchMedia("(max-width: 799px)").matches;  // Check if device is mobile
 
-        let snake = [{ x: 200, y: 200 }];
-        let food = { x: 300, y: 300 };
-        let dx = 20;
-        let dy = 0;
-        let changingDirection = false;
-        let gameInterval;
+        if (isMobile) {
+            const quoteContainer = document.getElementById("content");
+            const div = quoteContainer.appendChild(document.createElement("div"))
+            const random = Math.floor(Math.random() * quotes.length)
+            console.log(random)
+            const quote = quotes[Math.floor(Math.random() * quotes.length)]
 
-        function drawSnakePart(snakePart) {
-            ctx.fillStyle = "green";
-            ctx.strokeStyle = "darkgreen";
-            ctx.fillRect(snakePart.x, snakePart.y, 20, 20);
-            ctx.strokeRect(snakePart.x, snakePart.y, 20, 20);
-        }
+            const titleElement = document.createElement("h1")
+            titleElement.textContent = "Vous ne détestez pas le lundi, vous détestez la domination au travail."
+            // Create the new HTML elements
+            const quoteElement = document.createElement("p");
+            quoteElement.id = "quote";
+            quoteElement.textContent = `"${quote.quote}"`;
 
-        function drawSnake() {
-            snake.forEach(drawSnakePart);
-        }
+            const opusElement = document.createElement("p");
+            opusElement.id = "opus";
+            opusElement.textContent = quote.opus;
 
-        function createFood() {
-            food.x = Math.floor(Math.random() * 20) * 20;
-            food.y = Math.floor(Math.random() * 20) * 20;
-        }
+            const authorElement = document.createElement("p");
+            authorElement.id = "author";
+            authorElement.textContent = `${quote.author}, ${quote.year}`;
 
-        function drawFood() {
-            ctx.fillStyle = "red";
-            ctx.fillRect(food.x, food.y, 20, 20);
-        }
 
-        function moveSnake() {
-            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-            snake.unshift(head);
+            div.appendChild(titleElement)
+            div.appendChild(quoteElement);
+            div.appendChild(opusElement);
+            div.appendChild(authorElement);
+        } else {
 
-            if (head.x === food.x && head.y === food.y) {
-                createFood();
-            } else {
-                snake.pop();
+            const canvas = document.getElementById("gameCanvas");
+            const ctx = canvas.getContext("2d");
+            let snake = [{ x: 200, y: 200 }];
+            let food = { x: 300, y: 300 };
+            let dx = 20;
+            let dy = 0;
+            let changingDirection = false;
+            let gameInterval;
+
+            function drawSnakePart(snakePart) {
+                ctx.fillStyle = "green";
+                ctx.strokeStyle = "darkgreen";
+                ctx.fillRect(snakePart.x, snakePart.y, 20, 20);
+                ctx.strokeRect(snakePart.x, snakePart.y, 20, 20);
             }
-        }
 
-        function changeDirection(direction) {
-            if (changingDirection) return;
-            changingDirection = true;
-            const goingUp = dy === -20;
-            const goingDown = dy === 20;
-            const goingRight = dx === 20;
-            const goingLeft = dx === -20;
+            function drawSnake() {
+                snake.forEach(drawSnakePart);
+            }
 
-            if (direction === "left" && !goingRight) {
-                dx = -20;
-                dy = 0;
+            function createFood() {
+                food.x = Math.floor(Math.random() * 20) * 20;
+                food.y = Math.floor(Math.random() * 20) * 20;
             }
-            if (direction === "up" && !goingDown) {
-                dx = 0;
-                dy = -20;
+
+            function drawFood() {
+                ctx.fillStyle = "red";
+                ctx.fillRect(food.x, food.y, 20, 20);
             }
-            if (direction === "right" && !goingLeft) {
+
+            function moveSnake() {
+                const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+                snake.unshift(head);
+
+                if (head.x === food.x && head.y === food.y) {
+                    createFood();
+                } else {
+                    snake.pop();
+                }
+            }
+
+            function changeDirection(direction) {
+                if (changingDirection) return;
+                changingDirection = true;
+                const goingUp = dy === -20;
+                const goingDown = dy === 20;
+                const goingRight = dx === 20;
+                const goingLeft = dx === -20;
+
+                if (direction === "left" && !goingRight) {
+                    dx = -20;
+                    dy = 0;
+                }
+                if (direction === "up" && !goingDown) {
+                    dx = 0;
+                    dy = -20;
+                }
+                if (direction === "right" && !goingLeft) {
+                    dx = 20;
+                    dy = 0;
+                }
+                if (direction === "down" && !goingUp) {
+                    dx = 0;
+                    dy = 20;
+                }
+            }
+
+            function handleTouchStart(event) {
+                const touch = event.touches[0];
+                this.touchStartX = touch.clientX;
+                this.touchStartY = touch.clientY;
+            }
+
+            function handleTouchMove(event) {
+                if (!this.touchStartX || !this.touchStartY) return;
+
+                const touch = event.touches[0];
+                const dx = touch.clientX - this.touchStartX;
+                const dy = touch.clientY - this.touchStartY;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 0) {
+                        changeDirection("right");
+                    } else {
+                        changeDirection("left");
+                    }
+                } else {
+                    if (dy > 0) {
+                        changeDirection("down");
+                    } else {
+                        changeDirection("up");
+                    }
+                }
+
+                this.touchStartX = null;
+                this.touchStartY = null;
+            }
+
+            function checkCollision() {
+                for (let i = 4; i < snake.length; i++) {
+                    const hasCollided = snake[i].x === snake[0].x && snake[i].y === snake[0].y;
+                    if (hasCollided) return true;
+                }
+
+                const hitLeftWall = snake[0].x < 0;
+                const hitRightWall = snake[0].x > canvas.width - 20;
+                const hitTopWall = snake[0].y < 0;
+                const hitBottomWall = snake[0].y > canvas.height - 20;
+
+                return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+            }
+
+            function gameLoop() {
+                if (checkCollision()) {
+                    clearInterval(gameInterval);
+                    const quote = quotes[snake.length % quotes.length];
+                    Swal.fire({
+                        title: "Vous ne détestez pas le lundi, vous détestez la domination au travail.",
+                        html: `
+                               <p id="quote">"${quote.quote}"</p>
+                               <p id="opus">${quote.opus}</p>
+                               <p id="author">${quote.author}, ${quote.year}</p>
+                            `,
+                        icon: "question",
+                        iconColor: "yellow",
+                        background: "black",
+                        showCancelButton: true,
+                        confirmButtonText: "Situez-moi encore",
+                        cancelButtonText: "Auto-dissolution de l'expérience situationniste",
+                        footer: `Vous avez fait un score de ${snake.length - 1}, ce qui est bien mais pas top.`,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            resetGame();
+                        }
+                    });
+                    return;
+                }
+
+                changingDirection = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawFood();
+                moveSnake();
+                drawSnake();
+            }
+
+            function resetGame() {
+                snake = [{ x: 200, y: 200 }];
                 dx = 20;
                 dy = 0;
-            }
-            if (direction === "down" && !goingUp) {
-                dx = 0;
-                dy = 20;
-            }
-        }
-
-        function handleTouchStart(event) {
-            const touch = event.touches[0];
-            this.touchStartX = touch.clientX;
-            this.touchStartY = touch.clientY;
-        }
-
-        function handleTouchMove(event) {
-            if (!this.touchStartX || !this.touchStartY) return;
-
-            const touch = event.touches[0];
-            const dx = touch.clientX - this.touchStartX;
-            const dy = touch.clientY - this.touchStartY;
-
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx > 0) {
-                    changeDirection("right");
-                } else {
-                    changeDirection("left");
-                }
-            } else {
-                if (dy > 0) {
-                    changeDirection("down");
-                } else {
-                    changeDirection("up");
-                }
+                changingDirection = false;
+                createFood();
+                gameInterval = setInterval(gameLoop, 100);
             }
 
-            this.touchStartX = null;
-            this.touchStartY = null;
+            canvas.addEventListener("touchstart", handleTouchStart, false);
+            canvas.addEventListener("touchmove", handleTouchMove, false);
+            document.addEventListener("keydown", (event) => {
+                const directions = {
+                    37: "left",
+                    38: "up",
+                    39: "right",
+                    40: "down"
+                };
+                changeDirection(directions[event.keyCode]);
+            });
+            resetGame();
         }
-
-        function checkCollision() {
-            for (let i = 4; i < snake.length; i++) {
-                const hasCollided = snake[i].x === snake[0].x && snake[i].y === snake[0].y;
-                if (hasCollided) return true;
-            }
-
-            const hitLeftWall = snake[0].x < 0;
-            const hitRightWall = snake[0].x > canvas.width - 20;
-            const hitTopWall = snake[0].y < 0;
-            const hitBottomWall = snake[0].y > canvas.height - 20;
-
-            return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
-        }
-
-        function gameLoop() {
-            if (checkCollision()) {
-                clearInterval(gameInterval);
-                const quote = quotes[snake.length % quotes.length];
-                Swal.fire({
-                    title: "Vous ne détestez pas le lundi, vous détestez la domination au travail.",
-                    html: `
-                           <p id="quote">"${quote.quote}"</p>
-                           <p id="opus">${quote.opus}</p>
-                           <p id="author">${quote.author}, ${quote.year}</p>
-                        `,
-                    icon: "question",
-                    iconColor: "yellow",
-                    background: "black",
-                    showCancelButton: true,
-                    confirmButtonText: "Situez-moi encore",
-                    cancelButtonText: "Auto-dissolution de l'expérience situationniste",
-                    footer: `Vous avez fait un score de ${snake.length - 1}, ce qui est bien mais pas top.`,
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        resetGame();
-                    }
-                });
-                return;
-            }
-
-            changingDirection = false;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawFood();
-            moveSnake();
-            drawSnake();
-        }
-
-        function resetGame() {
-            snake = [{ x: 200, y: 200 }];
-            dx = 20;
-            dy = 0;
-            changingDirection = false;
-            createFood();
-            gameInterval = setInterval(gameLoop, 100);
-        }
-
-        canvas.addEventListener("touchstart", handleTouchStart, false);
-        canvas.addEventListener("touchmove", handleTouchMove, false);
-        document.addEventListener("keydown", (event) => {
-            const directions = {
-                37: "left",
-                38: "up",
-                39: "right",
-                40: "down"
-            };
-            changeDirection(directions[event.keyCode]);
-        });
-        resetGame();
     </script>
 </body>
