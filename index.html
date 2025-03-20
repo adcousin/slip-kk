@@ -276,7 +276,8 @@
                         clearInterval(gameInterval);
                         const quote = quotes[snake.length % quotes.length];
                         Swal.fire({
-                            title: "Vous ne détestez pas le lundi, vous détestez la domination au travail.",
+                            title: `<p id="quote">Vous ne détestez pas le lundi, vous détestez la domination au travail.</p>
+                           <p id="author">Nicolas Framont, 2024</p>`,
                             html: `
                                    <p id="quote">"${quote.quote}"</p>
                                    <p id="opus">${quote.opus}</p>
